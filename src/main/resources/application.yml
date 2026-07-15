@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: banking-ai-client
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: qwen3:1.7b
+    mcp:
+      client:
+        enabled: true
+        type: SYNC
+        sse:
+          connections:
+            banking-server:
+              url: http://localhost:8080
+server:
+  port: 8081
