@@ -6,6 +6,8 @@ spring:
       base-url: http://localhost:11434
       chat:
         model: qwen3:1.7b
+    openai:
+      api-key: ''
     mcp:
       client:
         enabled: true
@@ -16,3 +18,10 @@ spring:
               url: http://localhost:8080
 server:
   port: 8081
+
+opencode:
+  zen:
+    base-url: https://opencode.ai/zen/v1
+    model: deepseek-v4-flash-free
+    api-key: ${OPENCODE_API_KEY:}
+    request-timeout: 30s

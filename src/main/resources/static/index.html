@@ -30,8 +30,27 @@
             background: #1a73e8;
             color: #fff;
             padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-header h1 {
             font-size: 18px;
             font-weight: 600;
+        }
+        .chat-header select {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+        .chat-header select option {
+            background: #1a73e8;
+            color: #fff;
         }
         .chat-messages {
             flex: 1;
@@ -141,7 +160,13 @@
 </head>
 <body>
     <div class="chat-container">
-        <div class="chat-header">Banking AI Assistant</div>
+        <div class="chat-header">
+            <h1>Banking AI Assistant</h1>
+            <select id="modelSelect">
+                <option value="ollama">Ollama (Qwen)</option>
+                <option value="openai" selected>OpenCode Zen (DeepSeek V4)</option>
+            </select>
+        </div>
 
         <div class="chat-messages" id="messages">
             <div class="message ai">Hello! How can I help you with your banking needs today?</div>
@@ -162,6 +187,7 @@
         const sendBtn = document.getElementById('sendBtn');
         const messages = document.getElementById('messages');
         const typing = document.getElementById('typing');
+        const modelSelect = document.getElementById('modelSelect');
 
         function autoResize() {
             input.style.height = 'auto';
@@ -192,12 +218,15 @@
             input.value = '';
             autoResize();
             setLoading(true);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 35000);
 
             try {
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ message: text, model: modelSelect.value }),
+                    signal: controller.signal
                 });
                 if (!res.ok) {
                     const err = await res.text();
@@ -206,8 +235,12 @@
                 const data = await res.json();
                 addMessage(data.response, 'ai');
             } catch (err) {
-                addMessage('Error: ' + err.message, 'error');
+                const message = err.name === 'AbortError'
+                    ? 'OpenCode Zen timed out after 35 seconds. Try again with a shorter prompt.'
+                    : err.message;
+                addMessage('Error: ' + message, 'error');
             } finally {
+                clearTimeout(timeoutId);
                 setLoading(false);
                 input.focus();
             }
